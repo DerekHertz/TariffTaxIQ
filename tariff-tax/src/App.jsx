@@ -5,7 +5,12 @@ import Calculator from './components/Calculator';
 import Analysis from './components/Analysis';
 import { calculatePassThrough, calculateConsumerBurden } from './utils/calculations';
 
+/**
+ * Main application component for TariffTax IQ
+ * Manages global state and routing between dashboard, calculator, and analysis views
+ */
 export default function App() {
+  // Initialize dark mode preference from localStorage or system preference
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('darkMode');
@@ -16,12 +21,13 @@ export default function App() {
     }
     return true;
   });
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [tariffRate, setTariffRate] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Application state management
+  const [selectedProduct, setSelectedProduct] = useState(''); // Currently selected product HS code
+  const [tariffRate, setTariffRate] = useState(10); // Default tariff rate percentage
+  const [searchQuery, setSearchQuery] = useState(''); // Product search filter
+  const [activeTab, setActiveTab] = useState('dashboard'); // Current active tab view
   
-  // Sample data (for now) for products, pass-through rates, and burden by income
+  // Sample product data with elasticity values for pass-through calculations
   const products = [
     { hsCode: '721410', name: 'Steel Wire', category: 'Metals', elasticity: { demand: -3.0, supply: 2.0 } },
     { hsCode: '854430', name: 'Wiring Sets', category: 'Electronics', elasticity: { demand: -2.2, supply: 1.9 } },
@@ -29,6 +35,7 @@ export default function App() {
     { hsCode: '842123', name: 'Oil Filters', category: 'Machinery', elasticity: { demand: -2.0, supply: 1.8 } },
   ];
 
+  // Time series data showing how pass-through rates decline over time
   const passThroughData = [
     { name: 'Month 1', rate: 93, volume: 100 },
     { name: 'Month 3', rate: 87, volume: 85 },
@@ -37,6 +44,7 @@ export default function App() {
     { name: 'Month 12', rate: 50, volume: 60 },
   ];
 
+  // Consumer burden data segmented by income level (regressive nature of tariffs)
   const burdenByIncome = [
     { decile: 'Bottom 20%', burden: 325, percentage: 2.1 },
     { decile: '20-40%', burden: 410, percentage: 1.8 },
@@ -45,27 +53,32 @@ export default function App() {
     { decile: 'Top 20%', burden: 580, percentage: 0.8 },
   ];
 
+  // Memoized calculations to prevent unnecessary re-renders
   const selectedProductData = useMemo(() => {
     return products.find(p => p.hsCode === selectedProduct);
   }, [selectedProduct]);
 
+  // Calculate pass-through rate based on product elasticity
   const passThrough = useMemo(() => {
     return calculatePassThrough(selectedProductData);
   }, [selectedProductData]);
 
+  // Apply dark mode to DOM and persist preference
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
+  // Toggle dark/light mode
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev);
   };
 
-    return (
+  return (
     <div className={`min-h-screen transition-all duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       
+      {/* Main navigation tabs */}
       <nav className={`${darkMode ? 'bg-gray-800/90' : 'bg-white/90'} backdrop-blur-sm shadow-lg border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} transition-all duration-300`}>
         <div className="container mx-auto px-6">
           <div className="flex space-x-1">
@@ -80,9 +93,11 @@ export default function App() {
                 } rounded-lg mx-1`}
               >
                 <span className="relative z-10">{tab}</span>
+                {/* Active tab indicator */}
                 {activeTab === tab && (
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full" />
                 )}
+                {/* Hover effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/5 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
             ))}
@@ -90,6 +105,7 @@ export default function App() {
         </div>
       </nav>
 
+      {/* Content area - renders appropriate component based on active tab */}
       <main className="container mx-auto px-6 py-8">
         {activeTab === 'dashboard' && (
           <Dashboard 

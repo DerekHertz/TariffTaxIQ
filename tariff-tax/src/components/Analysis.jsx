@@ -1,10 +1,15 @@
 import React from 'react';
 import { BarChart3, TrendingDown, Users, DollarSign } from 'lucide-react';
 
+/**
+ * Analysis component displaying comprehensive tariff impact data
+ * Shows sector-specific impacts, regional variations, and economic indicators
+ * NOTE: All data values are currently hardcoded samples for development
+ */
 export default function Analysis({ darkMode }) {
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Analysis Header */}
+      {/* Analysis overview and introduction */}
       <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
         <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
           <BarChart3 className="w-8 h-8 text-violet-500" />
@@ -15,11 +20,13 @@ export default function Analysis({ darkMode }) {
         </p>
       </div>
 
-      {/* Key Insights */}
+      {/* High-level impact metrics cards - SAMPLE DATA */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Import volume impact metric */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} transform hover:scale-105 transition-all duration-300`}>
           <div className="flex items-center justify-between mb-4">
             <TrendingDown className="w-8 h-8 text-red-500" />
+            {/* HARDCODED SAMPLE: -12.3% import volume change */}
             <span className="text-3xl font-bold text-red-500">-12.3%</span>
           </div>
           <h3 className="font-semibold mb-2">Import Volume Change</h3>
@@ -28,9 +35,11 @@ export default function Analysis({ darkMode }) {
           </p>
         </div>
 
+        {/* Consumer burden metric */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} transform hover:scale-105 transition-all duration-300`}>
           <div className="flex items-center justify-between mb-4">
             <Users className="w-8 h-8 text-blue-500" />
+            {/* HARDCODED SAMPLE: 2.1% consumer burden */}
             <span className="text-3xl font-bold text-blue-500">2.1%</span>
           </div>
           <h3 className="font-semibold mb-2">Consumer Burden</h3>
@@ -39,9 +48,11 @@ export default function Analysis({ darkMode }) {
           </p>
         </div>
 
+        {/* Revenue generation metric */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} transform hover:scale-105 transition-all duration-300`}>
           <div className="flex items-center justify-between mb-4">
             <DollarSign className="w-8 h-8 text-green-500" />
+            {/* HARDCODED SAMPLE: $8.2B revenue generated */}
             <span className="text-3xl font-bold text-green-500">$8.2B</span>
           </div>
           <h3 className="font-semibold mb-2">Revenue Generated</h3>
@@ -51,12 +62,13 @@ export default function Analysis({ darkMode }) {
         </div>
       </div>
 
-      {/* Detailed Analysis Sections */}
+      {/* Detailed breakdown by sector and region - SAMPLE DATA */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Sector Impact */}
+        {/* Sector-specific impact analysis */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} transform hover:scale-105 transition-all duration-300`}>
           <h3 className="text-lg font-semibold mb-4">Impact by Sector</h3>
           <div className="space-y-4">
+            {/* HARDCODED SAMPLE: Impact severity by economic sector */}
             {[
               { sector: 'Electronics', impact: 85, color: 'red' },
               { sector: 'Textiles', impact: 72, color: 'orange' },
@@ -80,10 +92,11 @@ export default function Analysis({ darkMode }) {
           </div>
         </div>
 
-        {/* Regional Impact */}
+        {/* Geographic impact distribution */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} transform hover:scale-105 transition-all duration-300`}>
           <h3 className="text-lg font-semibold mb-4">Regional Impact</h3>
           <div className="space-y-4">
+            {/* HARDCODED SAMPLE: Regional variation in tariff burden */}
             {[
               { region: 'Northeast', burden: '$425', percentage: '1.8%' },
               { region: 'Southeast', burden: '$398', percentage: '2.2%' },
@@ -107,29 +120,34 @@ export default function Analysis({ darkMode }) {
         </div>
       </div>
 
-      {/* Economic Indicators */}
+      {/* Key economic performance indicators - SAMPLE DATA */}
       <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
         <h3 className="text-lg font-semibold mb-4">Economic Indicators</h3>
+        {/* HARDCODED SAMPLE: Summary statistics grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
+            {/* SAMPLE: 73.6% pass-through rate */}
             <div className="text-2xl font-bold text-violet-500 mb-1">73.6%</div>
             <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Average Pass-Through Rate
             </div>
           </div>
           <div className="text-center">
+            {/* SAMPLE: -0.8% GDP impact */}
             <div className="text-2xl font-bold text-pink-500 mb-1">-0.8%</div>
             <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               GDP Impact
             </div>
           </div>
           <div className="text-center">
+            {/* SAMPLE: 2.3M jobs affected */}
             <div className="text-2xl font-bold text-blue-500 mb-1">2.3M</div>
             <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Jobs Affected
             </div>
           </div>
           <div className="text-center">
+            {/* SAMPLE: $412 household impact */}
             <div className="text-2xl font-bold text-green-500 mb-1">$412</div>
             <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Avg Household Impact

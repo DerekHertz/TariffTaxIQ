@@ -9,6 +9,10 @@ import {
   calculateInventoryImpact
 } from '../utils/calculations';
 
+/**
+ * Interactive tariff impact calculator component
+ * Allows users to select products and adjust parameters to see real-time calculations
+ */
 export default function Calculator({ 
   darkMode, 
   searchQuery, 
@@ -18,21 +22,23 @@ export default function Calculator({
   products, 
   passThrough
 }) {
-  // Component's own state
-  const [tariffRate, setTariffRate] = useState(10);
-  const [retailPrice, setRetailPrice] = useState(100);
-  const [retailMarkup, setRetailMarkup] = useState(50);
-  const [inventoryBuffer, setInventoryBuffer] = useState(3);
-  const [customPassThrough, setCustomPassThrough] = useState(75);
+  // Calculator input parameters with sensible defaults
+  const [tariffRate, setTariffRate] = useState(10); // Tariff percentage rate
+  const [retailPrice, setRetailPrice] = useState(100); // Current retail price in dollars
+  const [retailMarkup, setRetailMarkup] = useState(50); // Retailer markup percentage
+  const [inventoryBuffer, setInventoryBuffer] = useState(3); // Months of inventory cushion
+  const [customPassThrough, setCustomPassThrough] = useState(75); // Manual pass-through when no product selected
 
+  // Filter products based on search query (name or HS code)
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.hsCode.includes(searchQuery)
   );
 
+  // Get full product data for selected product
   const selectedProductData = products.find(p => p.hsCode === selectedProduct);
 
-  // Calculate all values
+  // Memoized calculations based on current input parameters
   const calculations = useMemo(() => {
     const importCost = calculateImportCost(retailPrice, retailMarkup);
     const tariffAmount = calculateTariffAmount(importCost, tariffRate);
@@ -46,7 +52,6 @@ export default function Calculator({
       importCost,
       tariffAmount,
       tariffPassed,
-      
       futurePrice,
       tariffTaxPct,
       inventoryAdjustedIncrease,
@@ -56,13 +61,14 @@ export default function Calculator({
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Product Selection */}
+      {/* Product selection and search interface */}
       <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <CalcIcon className="w-6 h-6 text-violet-500" />
           Tariff Impact Calculator
         </h2>
         
+        {/* Product search input */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -76,6 +82,7 @@ export default function Calculator({
           />
         </div>
 
+        {/* Product selection grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {filteredProducts.map(product => (
             <button
@@ -98,14 +105,14 @@ export default function Calculator({
         </div>
       </div>
 
-      {/* Detailed Calculator */}
+      {/* Main calculator interface split into inputs and results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Panel */}
+        {/* Left panel: Input controls and parameter adjustment */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
           <h3 className="text-lg font-semibold mb-4">Input Parameters</h3>
           
           <div className="space-y-6">
-            {/* Retail Price */}
+            {/* Basic pricing inputs */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Retail Price ($)
@@ -120,7 +127,7 @@ export default function Calculator({
               />
             </div>
 
-            {/* Retail Markup */}
+            {/* Markup percentage slider */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Retail Markup (%)
@@ -140,7 +147,7 @@ export default function Calculator({
               </div>
             </div>
 
-            {/* Tariff Rate */}
+            {/* Tariff rate slider */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Tariff Rate (%)
@@ -160,7 +167,7 @@ export default function Calculator({
               </div>
             </div>
 
-            {/* Pass-through Rate */}
+            {/* Pass-through rate (auto-calculated or manual) */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Pass-through Rate (%)
@@ -189,7 +196,7 @@ export default function Calculator({
               </div>
             </div>
 
-            {/* Inventory Buffer */}
+            {/* Inventory buffer slider */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Inventory Buffer (months)
@@ -212,7 +219,7 @@ export default function Calculator({
           </div>
         </div>
 
-        {/* Results Panel */}
+        {/* Right panel: Calculation results and impact metrics */}
         <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-violet-500" />
@@ -220,7 +227,7 @@ export default function Calculator({
           </h3>
           
           <div className="space-y-4">
-            {/* Key Metrics */}
+            {/* Core calculation metrics */}
             <div className="grid grid-cols-2 gap-4">
               <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <p className="text-sm text-gray-500 mb-1">Import Cost</p>
@@ -236,7 +243,7 @@ export default function Calculator({
               </div>
             </div>
 
-            {/* Consumer Impact */}
+            {/* Main consumer impact summary */}
             <div className={`p-4 rounded-lg border-2 ${
               darkMode ? 'bg-gray-700/50 border-blue-500/50' : 'bg-blue-50 border-blue-200'
             }`}>
@@ -266,7 +273,7 @@ export default function Calculator({
               </div>
             </div>
 
-            {/* Tariff Tax Percentage */}
+            {/* Highlighted effective tariff rate */}
             <div className={`p-6 rounded-lg text-center ${
               darkMode ? 'bg-gradient-to-r from-violet-900/50 to-pink-900/50' : 'bg-gradient-to-r from-violet-100 to-pink-100'
             }`}>
@@ -279,7 +286,7 @@ export default function Calculator({
               </p>
             </div>
 
-            {/* Inventory Impact */}
+            {/* Inventory buffer impact calculation */}
             {inventoryBuffer > 0 && (
               <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <p className="text-sm text-gray-500 mb-1">With {inventoryBuffer}-Month Buffer</p>
