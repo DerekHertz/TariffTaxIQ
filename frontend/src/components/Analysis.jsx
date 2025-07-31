@@ -70,22 +70,23 @@ export default function Analysis({ darkMode }) {
           <div className="space-y-4">
             {/* HARDCODED SAMPLE: Impact severity by economic sector */}
             {[
-              { sector: 'Electronics', impact: 85, color: 'red' },
-              { sector: 'Textiles', impact: 72, color: 'orange' },
-              { sector: 'Machinery', impact: 68, color: 'yellow' },
-              { sector: 'Automotive', impact: 45, color: 'blue' },
-              { sector: 'Agriculture', impact: 32, color: 'green' }
+              { sector: 'Electronics', impact: 85, colorClass: 'bg-red-500' },
+              { sector: 'Textiles', impact: 72, colorClass: 'bg-orange-500' },
+              { sector: 'Machinery', impact: 68, colorClass: 'bg-yellow-500' },
+              { sector: 'Automotive', impact: 45, colorClass: 'bg-blue-500' },
+              { sector: 'Agriculture', impact: 32, colorClass: 'bg-green-500' }
             ].map(item => (
               <div key={item.sector} className="flex items-center justify-between">
                 <span className="font-medium">{item.sector}</span>
                 <div className="flex items-center gap-3">
-                  <div className="w-32 bg-gray-200 rounded-full h-2">
+                  {/* Progress bar container with proper width calculation */}
+                  <div className={`w-32 ${darkMode ? 'bg-gray-600' : 'bg-gray-200'} rounded-full h-2 relative overflow-hidden`}>
                     <div 
-                      className={`h-2 rounded-full bg-${item.color}-500`}
-                      style={{ width: `${item.impact}%` }}
+                      className={`h-2 rounded-full ${item.colorClass} transition-all duration-500 ease-out`}
+                      style={{ width: `${Math.max(0, Math.min(100, item.impact))}%` }}
                     />
                   </div>
-                  <span className="text-sm font-bold w-8">{item.impact}%</span>
+                  <span className="text-sm font-bold w-8 text-right">{item.impact}%</span>
                 </div>
               </div>
             ))}
