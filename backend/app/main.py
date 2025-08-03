@@ -1,9 +1,10 @@
+import json
+from pathlib import Path
+from typing import List, Optional
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
-import json
-from datetime import datetime
 
 app = FastAPI(title="Tariff Tracker API")
 
@@ -14,9 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-import os
-from pathlib import Path
 
 # Get the directory where this file is located
 current_dir = Path(__file__).parent
@@ -43,6 +41,7 @@ except FileNotFoundError:
         ]
     }
 
+
 class Product(BaseModel):
     hs_code: str
     name: str
@@ -54,12 +53,14 @@ class Product(BaseModel):
     current_tariff_rate: float
     proposed_tariff_rate: float
 
+
 class TariffCalculation(BaseModel):
     retail_price: float
     retail_markup: float
     tariff_rate: float
     pass_through_rate: Optional[float] = None
     inventory_buffer: int = 0
+
 
 class CalculationResult(BaseModel):
     import_cost: float
@@ -68,6 +69,7 @@ class CalculationResult(BaseModel):
     future_price: float
     tariff_tax_pct: float
     price_increase_pct: float
+
 
 # endpoints
 @app.get("/")
@@ -95,14 +97,18 @@ async def calculate_tariff(calc: TariffCalculation):
     """Calculate the tariff impact on consumer prices."""
     if calc.pass_through_rate is None:
         calc.pass_through_rate = 75.0  # Default pass-through rate if not provided
-    
+
     # calculations
     import_cost = calc.retail_price / (1 + calc.retail_markup / 100)
     tariff_amount = import_cost * (calc.tariff_rate / 100)
     tariff_passed = tariff_amount * (calc.pass_through_rate / 100)
     future_price = calc.retail_price + tariff_passed
-    tariff_tax_pct = (tariff_amount / future_price) * 100 if future_price > 0 else 0
-    price_increase_pct = (tariff_passed / calc.retail_price) * 100 if calc.retail_price > 0 else 0
+    tariff_tax_pct = (
+        (tariff_amount / future_price) * 100 if future_price > 0 else 0
+    )
+    price_increase_pct = (
+        (tariff_passed / calc.retail_price) * 100 if calc.retail_price > 0 else 0
+    )
 
     return CalculationResult(
         import_cost=round(import_cost, 2),
@@ -110,7 +116,7 @@ async def calculate_tariff(calc: TariffCalculation):
         tariff_passed=round(tariff_passed, 2),
         future_price=round(future_price, 2),
         tariff_tax_pct=round(tariff_tax_pct, 2),
-        price_increase_pct=round(price_increase_pct, 2)
+        price_increase_pct=round(price_increase_pct, 2),
     )
 
 
@@ -120,7 +126,7 @@ async def get_price_history(hs_code: str):
     history = [p for p in SAMPLE_DATA["price_history"] if p["hs_code"] == hs_code]
     if not history:
         raise HTTPException(status_code=404, detail="Price history not found")
-    return history[-52:] # return last year of data (~52 weeks)
+    return history[-52:]  # return last year of data (~52 weeks)
 
 
 @app.get("/api/tariff-scenarios")
