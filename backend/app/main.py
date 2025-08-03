@@ -105,9 +105,7 @@ async def calculate_tariff(calc: TariffCalculation):
     tariff_amount = import_cost * (calc.tariff_rate / 100)
     tariff_passed = tariff_amount * (calc.pass_through_rate / 100)
     future_price = calc.retail_price + tariff_passed
-    tariff_tax_pct = (
-        (tariff_amount / future_price) * 100 if future_price > 0 else 0
-    )
+    tariff_tax_pct = (tariff_amount / future_price) * 100 if future_price > 0 else 0
     price_increase_pct = (
         (tariff_passed / calc.retail_price) * 100 if calc.retail_price > 0 else 0
     )
