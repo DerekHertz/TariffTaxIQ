@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+  --color-violet-700: #6d28d9;
+  --color-pink-500: #ec4899;
+  --color-pink-600: #db2777;
+  --color-blue-500: #3b82f6;
+  --color-green-500: #10b981;
+  --color-yellow-400: #fbbf24;
+}
+
+body {
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: theme(colors.gray.100);
+}
+
+::-webkit-scrollbar-track:where(.dark *) {
+  background-color: theme(colors.gray.800);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: theme(colors.gray.300);
+  border-radius: theme(borderRadius.lg);
+}
+
+::-webkit-scrollbar-thumb:where(.dark *) {
+  background-color: theme(colors.gray.600);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: theme(colors.gray.400);
+}
+
+::-webkit-scrollbar-thumb:hover:where(.dark *) {
+  background-color: theme(colors.gray.500);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
