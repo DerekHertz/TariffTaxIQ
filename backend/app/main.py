@@ -36,7 +36,7 @@ except FileNotFoundError:
                 "unit": "kg",
                 "country_of_origin": "China",
                 "current_tariff_rate": 2.5,
-                "proposed_tariff_rate": 25.0
+                "proposed_tariff_rate": 25.0,
             }
         ]
     }
@@ -145,11 +145,11 @@ async def get_tariff_scenarios():
             "Agriculture": 5.0,
             "Machinery": 2.0,
             "Textiles": 8.0,
-            "Chemicals": 3.5
+            "Chemicals": 3.5,
         },
         "proposed_changes": {
             "Electronics": 25.0,
             "Metals": 10.0,
-            "Agriculture": 15.0
-        }
+            "Agriculture": 15.0,
+        },
     }
