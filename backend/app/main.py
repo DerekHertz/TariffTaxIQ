@@ -41,7 +41,7 @@ except FileNotFoundError:
         ]
     }
 
-
+# Define data models using Pydantic
 class Product(BaseModel):
     hs_code: str
     name: str
