@@ -86,7 +86,9 @@ async def get_products():
 @app.get("/api/products/{hs_code}")
 async def get_product(hs_code: str):
     """Retrieve a specific product by HS code."""
-    product = next((p for p in SAMPLE_DATA["products"] if p["hs_code"] == hs_code), None)
+    product = next(
+        (p for p in SAMPLE_DATA["products"] if p["hs_code"] == hs_code), None
+    )
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
@@ -96,7 +98,7 @@ async def get_product(hs_code: str):
 async def calculate_tariff(calc: TariffCalculation):
     """Calculate the tariff impact on consumer prices."""
     if calc.pass_through_rate is None:
-        calc.pass_through_rate = 75.0  # Default pass-through rate if not provided
+        calc.pass_through_rate = 75.0
 
     # calculations
     import_cost = calc.retail_price / (1 + calc.retail_markup / 100)
@@ -126,7 +128,7 @@ async def get_price_history(hs_code: str):
     # Check if price_history exists in sample data
     if "price_history" not in SAMPLE_DATA:
         raise HTTPException(status_code=404, detail="Price history not available")
-    
+
     history = [p for p in SAMPLE_DATA["price_history"] if p["hs_code"] == hs_code]
     if not history:
         raise HTTPException(status_code=404, detail="Price history not found")
