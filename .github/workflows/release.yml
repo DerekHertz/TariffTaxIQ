@@ -1,0 +1,27 @@
+name: Release Deployment
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy-all:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy Frontend
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: tariff-tracker
+          directory: frontend/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy Backend
+        run: |
+          echo "Deploying version ${{ github.event.release.tag_name }}"
+          # Add your deployment commands here
