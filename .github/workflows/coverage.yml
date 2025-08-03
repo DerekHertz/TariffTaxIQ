@@ -5,17 +5,30 @@ on: [push, pull_request]
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     
     steps:
       - uses: actions/checkout@v3
       
-      - name: Backend Coverage
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
         run: |
-          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pytest-cov
-          pytest --cov=app tests/
+          
+      - name: Run coverage
+        run: |
+          pytest --cov=app tests/ --cov-report=xml --cov-report=term
           
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./backend/coverage.xml
+          fail_ci_if_error: false

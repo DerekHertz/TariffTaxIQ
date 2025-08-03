@@ -27,8 +27,10 @@ def test_get_products():
     
     # Check first product has required fields
     first_product = data[0]
-    required_fields = ["hs_code", "name", "category", "demand_elasticity", 
-                      "supply_elasticity", "unit", "country_of_origin"]
+    required_fields = [
+        "hs_code", "name", "category", "demand_elasticity",
+        "supply_elasticity", "unit", "country_of_origin"
+    ]
     for field in required_fields:
         assert field in first_product
 
@@ -67,8 +69,10 @@ def test_calculate_tariff():
     assert response.status_code == 200
     data = response.json()
     
-    required_fields = ["import_cost", "tariff_amount", "tariff_passed", 
-                      "future_price", "tariff_tax_pct", "price_increase_pct"]
+    required_fields = [
+        "import_cost", "tariff_amount", "tariff_passed",
+        "future_price", "tariff_tax_pct", "price_increase_pct"
+    ]
     for field in required_fields:
         assert field in data
         assert isinstance(data[field], (int, float))
