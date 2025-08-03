@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Search, Calculator as CalcIcon, TrendingUp, DollarSign, AlertCircle, Info, Globe } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -21,7 +21,6 @@ export default function Calculator({
   selectedProduct = '', 
   setSelectedProduct = () => {}, 
   products = [], 
-  passThrough = 75
 }) {
   // Calculator input parameters with sensible defaults
   const [tariffRate, setTariffRate] = useState(10); // Tariff percentage rate
@@ -35,7 +34,6 @@ export default function Calculator({
   const [loading, setLoading] = useState(false); // Loading state for async operations
   const [error, setError] = useState(null); // Error state for API calls
   const [apiProducts, setApiProducts] = useState([]); // Products fetched from API
-  const [calculating, setCalculating] = useState(false); // State to indicate if calculations are in progress
   const [apiCalculations, setApiCalculations] = useState(null); // Results from API calculations
 
   // Fetch products from backend on component mount
@@ -58,8 +56,7 @@ export default function Calculator({
     }
   };
 
-  const performApiCalculation = async () => {
-    setCalculating(true);
+  const performApiCalculation = useCallback(async () => {
     setError(null);
     
     try {
@@ -77,9 +74,9 @@ hs_code: selectedProduct || null
       setError('Failed to calculate. Please try again.');
       console.error('Calculation error:', err);
     } finally {
-      setCalculating(false);
+      // Calculation complete
     }
-  };
+  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, inventoryBuffer, selectedProduct]);
   useEffect(() => {
   if (retailPrice > 0 && tariffRate >= 0) {
     const timer = setTimeout(() => {
@@ -87,7 +84,7 @@ hs_code: selectedProduct || null
     }, 500); // Debounce for 500ms
     return () => clearTimeout(timer);
     }
-  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, inventoryBuffer, selectedProduct]);
+  }, [retailPrice, tariffRate, performApiCalculation]);
   
   // Filter products based on search query (name or HS code)
   // Handle both API products (hs_code) and local products (hsCode)
@@ -151,7 +148,7 @@ hs_code: selectedProduct || null
       inventoryAdjustedIncrease,
       priceIncreasePercent: (tariffPassed / retailPrice) * 100
     };
-  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, selectedProductData, inventoryBuffer]);
+  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, inventoryBuffer]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">

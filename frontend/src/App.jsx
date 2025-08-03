@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import Calculator from './components/Calculator';
 import Analysis from './components/Analysis';
-import { calculatePassThrough, calculateConsumerBurden } from './utils/calculations';
 
 /**
  * Main application component for TariffTax IQ
@@ -48,7 +47,6 @@ export default function App() {
    * Application navigation and interaction state
    */
   const [selectedProduct, setSelectedProduct] = useState(''); // Currently selected product HS code
-  const [tariffRate, setTariffRate] = useState(10); // Default tariff rate percentage
   const [searchQuery, setSearchQuery] = useState(''); // Product search filter string
   const [activeTab, setActiveTab] = useState('dashboard'); // Current active tab view
   
