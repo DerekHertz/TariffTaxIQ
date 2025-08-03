@@ -123,6 +123,10 @@ async def calculate_tariff(calc: TariffCalculation):
 @app.get("/api/price-history/{hs_code}")
 async def get_price_history(hs_code: str):
     """Retrieve historical price data for a product."""
+    # Check if price_history exists in sample data
+    if "price_history" not in SAMPLE_DATA:
+        raise HTTPException(status_code=404, detail="Price history not available")
+    
     history = [p for p in SAMPLE_DATA["price_history"] if p["hs_code"] == hs_code]
     if not history:
         raise HTTPException(status_code=404, detail="Price history not found")
