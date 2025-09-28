@@ -1,3 +1,16 @@
+"""
+Tariff Tracker API
+
+A FastAPI application that provides tariff calculation services and product data
+for analyzing the impact of trade tariffs on consumer prices.
+
+Features:
+- Product database with real-world consumer goods
+- Tariff impact calculations with economic modeling
+- Live tariff rate updates from USITC data
+- Cross-origin support for web frontend
+"""
+
 import json
 from pathlib import Path
 from typing import List, Optional
@@ -5,30 +18,38 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from .tariff_service import TariffUpdateService
 
-app = FastAPI(title="Tariff Tracker API")
+# Initialize FastAPI application
+app = FastAPI(
+    title="Tariff Tracker API",
+    description="API for calculating tariff impacts on consumer prices",
+    version="1.0.0",
+)
 
+# Configure CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "https://tarifftaxiq.org",
-        "https://www.tarifftaxiq.org",
+        "http://localhost:3000",  # Local development
+        "https://tarifftaxiq.org",  # Production domain
+        "https://www.tarifftaxiq.org",  # Production www subdomain
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Get the directory where this file is located
+# Application configuration
 current_dir = Path(__file__).parent
+tariff_service = TariffUpdateService()
 
-# Load sample data from JSON file
+# Load product data from JSON file with fallback
 try:
     with open(current_dir / "sample_data.json", "r") as file:
         SAMPLE_DATA = json.load(file)
 except FileNotFoundError:
-    # Fallback data in case file is not found
+    # Fallback data for initial setup
     SAMPLE_DATA = {
         "products": [
             {
@@ -46,8 +67,10 @@ except FileNotFoundError:
     }
 
 
-# Define data models using Pydantic
+# Data Models
 class Product(BaseModel):
+    """Product model with tariff and economic data."""
+
     hs_code: str
     name: str
     category: str
@@ -60,6 +83,8 @@ class Product(BaseModel):
 
 
 class TariffCalculation(BaseModel):
+    """Input parameters for tariff impact calculations."""
+
     retail_price: float
     retail_markup: float
     tariff_rate: float
@@ -68,6 +93,8 @@ class TariffCalculation(BaseModel):
 
 
 class CalculationResult(BaseModel):
+    """Results of tariff impact analysis."""
+
     import_cost: float
     tariff_amount: float
     tariff_passed: float
@@ -76,7 +103,7 @@ class CalculationResult(BaseModel):
     price_increase_pct: float
 
 
-# endpoints
+# API Endpoints
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Tariff Tracker API", "version": "1.0.0"}
@@ -101,11 +128,16 @@ async def get_product(hs_code: str):
 
 @app.post("/api/calculate", response_model=CalculationResult)
 async def calculate_tariff(calc: TariffCalculation):
-    """Calculate the tariff impact on consumer prices."""
+    """
+    Calculate the tariff impact on consumer prices.
+
+    Uses economic modeling to estimate how tariff costs are passed through
+    to consumers based on market dynamics and business practices.
+    """
     if calc.pass_through_rate is None:
         calc.pass_through_rate = 75.0
 
-    # calculations
+    # Core economic calculations
     import_cost = calc.retail_price / (1 + calc.retail_markup / 100)
     tariff_amount = import_cost * (calc.tariff_rate / 100)
     tariff_passed = tariff_amount * (calc.pass_through_rate / 100)
@@ -127,15 +159,16 @@ async def calculate_tariff(calc: TariffCalculation):
 
 @app.get("/api/price-history/{hs_code}")
 async def get_price_history(hs_code: str):
-    """Retrieve historical price data for a product."""
-    # Check if price_history exists in sample data
+    """Retrieve historical price data for a product (last 52 weeks)."""
     if "price_history" not in SAMPLE_DATA:
         raise HTTPException(status_code=404, detail="Price history not available")
 
     history = [p for p in SAMPLE_DATA["price_history"] if p["hs_code"] == hs_code]
     if not history:
         raise HTTPException(status_code=404, detail="Price history not found")
-    return history[-52:]  # return last year of data (~52 weeks)
+
+    # Return last year of weekly data
+    return history[-52:]
 
 
 @app.get("/api/tariff-scenarios")
@@ -156,3 +189,60 @@ async def get_tariff_scenarios():
             "Agriculture": 15.0,
         },
     }
+
+
+@app.post("/api/update-tariffs")
+async def update_tariff_rates():
+    """
+    Update current tariff rates from USITC HTS API.
+
+    Fetches the latest official tariff rates from the US International Trade
+    Commission and updates all products in the database.
+    """
+    global SAMPLE_DATA
+
+    try:
+        result = await tariff_service.update_sample_data_tariffs(
+            current_dir / "sample_data.json"
+        )
+
+        if result["success"]:
+            # Reload updated product data
+            with open(current_dir / "sample_data.json", "r") as file:
+                SAMPLE_DATA = json.load(file)
+
+            return {
+                "message": "Tariff rates updated successfully",
+                "updated_count": len(result["updated_products"]),
+                "failed_count": len(result["failed_products"]),
+                "total_processed": result["total_processed"],
+                "updated_products": result["updated_products"],
+                "failed_products": result["failed_products"],
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to update tariff rates: {result.get('error', 'Unknown error')}",
+            )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error updating tariff rates: {str(e)}"
+        )
+
+
+@app.get("/api/tariff-info/{hs_code}")
+async def get_tariff_info(hs_code: str):
+    """Get current tariff information for a specific HS code."""
+    try:
+        tariff_info = await tariff_service.get_product_tariff_info(hs_code)
+
+        if "error" in tariff_info:
+            raise HTTPException(status_code=500, detail=tariff_info["error"])
+
+        return tariff_info
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching tariff info: {str(e)}"
+        )
