@@ -35,9 +35,7 @@ export default function Calculator({
   const [tariffRate, setTariffRate] = useState(10);
   const [retailPrice, setRetailPrice] = useState(25);
   const [retailMarkup, setRetailMarkup] = useState(50);
-  const [inventoryBuffer, setInventoryBuffer] = useState(3);
   const [customPassThrough, setCustomPassThrough] = useState(75);
-  const [showAllProducts, setShowAllProducts] = useState(false);
 
   // API state management
   const [loading, setLoading] = useState(false);
