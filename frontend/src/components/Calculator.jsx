@@ -72,7 +72,6 @@ export default function Calculator({
         retail_markup: retailMarkup,
         tariff_rate: tariffRate,
         pass_through_rate: customPassThrough,
-        inventory_buffer: inventoryBuffer,
 hs_code: selectedProduct || null
       });
       
@@ -83,7 +82,7 @@ hs_code: selectedProduct || null
     } finally {
       // Calculation complete
     }
-  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, inventoryBuffer, selectedProduct]);
+  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, selectedProduct]);
   useEffect(() => {
   if (retailPrice > 0 && tariffRate >= 0) {
     const timer = setTimeout(() => {
@@ -175,7 +174,7 @@ hs_code: selectedProduct || null
     const tariffPassed = calculateTariffPassed(tariffAmount, effectivePassThrough);
     const futurePrice = calculateFuturePrice(retailPrice, tariffPassed);
     const tariffTaxPct = calculateTariffTaxPercentage(tariffPassed, futurePrice);
-    const inventoryAdjustedIncrease = calculateInventoryImpact(inventoryBuffer, tariffPassed);
+    const inventoryAdjustedIncrease = calculateInventoryImpact(tariffPassed);
 
     return {
       importCost,
@@ -186,7 +185,7 @@ hs_code: selectedProduct || null
       inventoryAdjustedIncrease,
       priceIncreasePercent: (tariffPassed / retailPrice) * 100
     };
-  }, [retailPrice, retailMarkup, tariffRate, customPassThrough, inventoryBuffer]);
+  }, [retailPrice, retailMarkup, tariffRate, customPassThrough]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
