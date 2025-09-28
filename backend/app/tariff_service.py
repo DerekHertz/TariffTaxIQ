@@ -50,7 +50,9 @@ class TariffUpdateService:
             logger.error(f"JSON decode error: {e}")
             return None
 
-    def find_tariff_rate_by_hs_code(self, hts_data: Dict, hs_code: str) -> Optional[float]:
+    def find_tariff_rate_by_hs_code(
+        self, hts_data: Dict, hs_code: str
+    ) -> Optional[float]:
         """
         Find current tariff rate for a specific HS code.
 
@@ -61,18 +63,22 @@ class TariffUpdateService:
         Returns:
             Current tariff rate as percentage or None if not found
         """
-        if not hts_data or 'data' not in hts_data:
+        if not hts_data or "data" not in hts_data:
             return None
 
         # Search through HTS data for matching HS code
-        for item in hts_data.get('data', []):
+        for item in hts_data.get("data", []):
             # Check various possible field names for HS codes
-            item_hs = item.get('hts_number', item.get('hs_code', item.get('product_code', '')))
+            item_hs = item.get(
+                "hts_number", item.get("hs_code", item.get("product_code", ""))
+            )
 
             # Match first 6 digits (standard HS code level)
             if str(item_hs).startswith(hs_code[:6]):
                 # Extract tariff rate from common field names
-                rate_str = item.get('duty_rate', item.get('tariff_rate', item.get('rate', '0')))
+                rate_str = item.get(
+                    "duty_rate", item.get("tariff_rate", item.get("rate", "0"))
+                )
 
                 try:
                     # Handle various rate formats
@@ -80,12 +86,12 @@ class TariffUpdateService:
                         return float(rate_str)
 
                     rate_str = str(rate_str).upper().strip()
-                    if rate_str in ['FREE', 'DUTY FREE', '0']:
+                    if rate_str in ["FREE", "DUTY FREE", "0"]:
                         return 0.0
 
                     # Extract numeric value from percentage strings
-                    if '%' in rate_str:
-                        rate_str = rate_str.replace('%', '').strip()
+                    if "%" in rate_str:
+                        rate_str = rate_str.replace("%", "").strip()
 
                     return float(rate_str)
                 except (ValueError, TypeError):
@@ -107,12 +113,12 @@ class TariffUpdateService:
             "updated_products": [],
             "failed_products": [],
             "total_processed": 0,
-            "success": False
+            "success": False,
         }
 
         try:
             # Load current product data
-            with open(sample_data_path, 'r') as file:
+            with open(sample_data_path, "r") as file:
                 data = json.load(file)
 
             # Fetch latest tariff data from USITC
@@ -122,39 +128,45 @@ class TariffUpdateService:
                 return result
 
             # Update each product's current tariff rate
-            for product in data.get('products', []):
+            for product in data.get("products", []):
                 result["total_processed"] += 1
-                hs_code = product.get('hs_code')
+                hs_code = product.get("hs_code")
 
                 if not hs_code:
-                    result["failed_products"].append({
-                        "name": product.get('name', 'Unknown'),
-                        "reason": "Missing HS code"
-                    })
+                    result["failed_products"].append(
+                        {
+                            "name": product.get("name", "Unknown"),
+                            "reason": "Missing HS code",
+                        }
+                    )
                     continue
 
                 # Find current official tariff rate
                 current_rate = self.find_tariff_rate_by_hs_code(hts_data, hs_code)
 
                 if current_rate is not None:
-                    old_rate = product.get('current_tariff_rate', 0)
-                    product['current_tariff_rate'] = current_rate
+                    old_rate = product.get("current_tariff_rate", 0)
+                    product["current_tariff_rate"] = current_rate
 
-                    result["updated_products"].append({
-                        "name": product.get('name'),
-                        "hs_code": hs_code,
-                        "old_rate": old_rate,
-                        "new_rate": current_rate
-                    })
+                    result["updated_products"].append(
+                        {
+                            "name": product.get("name"),
+                            "hs_code": hs_code,
+                            "old_rate": old_rate,
+                            "new_rate": current_rate,
+                        }
+                    )
                 else:
-                    result["failed_products"].append({
-                        "name": product.get('name', 'Unknown'),
-                        "hs_code": hs_code,
-                        "reason": "Tariff rate not found in HTS data"
-                    })
+                    result["failed_products"].append(
+                        {
+                            "name": product.get("name", "Unknown"),
+                            "hs_code": hs_code,
+                            "reason": "Tariff rate not found in HTS data",
+                        }
+                    )
 
             # Save updated data back to file
-            with open(sample_data_path, 'w') as file:
+            with open(sample_data_path, "w") as file:
                 json.dump(data, file, indent=2)
 
             result["success"] = True
@@ -185,5 +197,5 @@ class TariffUpdateService:
             "hs_code": hs_code,
             "current_tariff_rate": current_rate,
             "data_source": "USITC HTS 2024",
-            "last_updated": "2024"
+            "last_updated": "2024",
         }

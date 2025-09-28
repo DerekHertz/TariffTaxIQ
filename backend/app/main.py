@@ -24,15 +24,15 @@ from .tariff_service import TariffUpdateService
 app = FastAPI(
     title="Tariff Tracker API",
     description="API for calculating tariff impacts on consumer prices",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configure CORS middleware for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",        # Local development
-        "https://tarifftaxiq.org",      # Production domain
+        "http://localhost:3000",  # Local development
+        "https://tarifftaxiq.org",  # Production domain
         "https://www.tarifftaxiq.org",  # Production www subdomain
     ],
     allow_credentials=True,
@@ -70,6 +70,7 @@ except FileNotFoundError:
 # Data Models
 class Product(BaseModel):
     """Product model with tariff and economic data."""
+
     hs_code: str
     name: str
     category: str
@@ -83,6 +84,7 @@ class Product(BaseModel):
 
 class TariffCalculation(BaseModel):
     """Input parameters for tariff impact calculations."""
+
     retail_price: float
     retail_markup: float
     tariff_rate: float
@@ -92,6 +94,7 @@ class TariffCalculation(BaseModel):
 
 class CalculationResult(BaseModel):
     """Results of tariff impact analysis."""
+
     import_cost: float
     tariff_amount: float
     tariff_passed: float
@@ -199,7 +202,9 @@ async def update_tariff_rates():
     global SAMPLE_DATA
 
     try:
-        result = await tariff_service.update_sample_data_tariffs(current_dir / "sample_data.json")
+        result = await tariff_service.update_sample_data_tariffs(
+            current_dir / "sample_data.json"
+        )
 
         if result["success"]:
             # Reload updated product data
@@ -212,16 +217,18 @@ async def update_tariff_rates():
                 "failed_count": len(result["failed_products"]),
                 "total_processed": result["total_processed"],
                 "updated_products": result["updated_products"],
-                "failed_products": result["failed_products"]
+                "failed_products": result["failed_products"],
             }
         else:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to update tariff rates: {result.get('error', 'Unknown error')}"
+                detail=f"Failed to update tariff rates: {result.get('error', 'Unknown error')}",
             )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error updating tariff rates: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error updating tariff rates: {str(e)}"
+        )
 
 
 @app.get("/api/tariff-info/{hs_code}")
@@ -236,4 +243,6 @@ async def get_tariff_info(hs_code: str):
         return tariff_info
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching tariff info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching tariff info: {str(e)}"
+        )
