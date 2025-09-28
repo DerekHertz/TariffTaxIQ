@@ -24,7 +24,7 @@ export default function Header({ darkMode, toggleDarkMode }) {
                                 TariffTax IQ
                             </h1>
                             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} font-medium`}>
-                                Impact Calculator & Analysis
+                                Impact Calculator
                             </p>
                         </div>
                     </div>

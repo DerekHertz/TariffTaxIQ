@@ -63,3 +63,6 @@ out/
 # Logs
 logs
 *.log
+
+# Claude Code configuration
+.claude/

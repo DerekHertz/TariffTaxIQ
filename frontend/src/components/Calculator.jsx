@@ -1,5 +1,19 @@
+/**
+ * Tariff Impact Calculator Component
+ *
+ * Interactive calculator for analyzing the impact of tariffs on consumer prices.
+ * Features real-time calculations, product selection, and economic modeling.
+ *
+ * Features:
+ * - Real-time tariff impact calculations
+ * - Product database with actual consumer goods
+ * - Economic modeling with demand/supply elasticity
+ * - Calculator-style UI with preset buttons
+ * - Side-by-side product selection and calculation interface
+ */
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Calculator as CalcIcon, TrendingUp, DollarSign, AlertCircle, Info, Globe } from 'lucide-react';
+import { Search, Calculator as CalcIcon, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
 import {
   calculateImportCost,
@@ -9,32 +23,27 @@ import {
   calculateTariffTaxPercentage,
   calculateInventoryImpact
 } from '../utils/calculations';
-
-/**
- * Interactive tariff impact calculator component
- * Allows users to select products and adjust parameters to see real-time calculations
- */
-export default function Calculator({ 
-  darkMode = false, 
-  searchQuery = '', 
-  setSearchQuery = () => {}, 
-  selectedProduct = '', 
-  setSelectedProduct = () => {}, 
-  products = [], 
+export default function Calculator({
+  darkMode = false,
+  searchQuery = '',
+  setSearchQuery = () => {},
+  selectedProduct = '',
+  setSelectedProduct = () => {},
+  products = [],
 }) {
-  // Calculator input parameters with sensible defaults
-  const [tariffRate, setTariffRate] = useState(10); // Tariff percentage rate
-  const [retailPrice, setRetailPrice] = useState(100); // Current retail price in dollars
-  const [retailMarkup, setRetailMarkup] = useState(50); // Retailer markup percentage
-  const [inventoryBuffer, setInventoryBuffer] = useState(3); // Months of inventory cushion
-  const [customPassThrough, setCustomPassThrough] = useState(75); // Manual pass-through rate
-  const [showAllProducts, setShowAllProducts] = useState(false); // Show more/less products toggle
+  // Calculator input state with sensible defaults
+  const [tariffRate, setTariffRate] = useState(10);
+  const [retailPrice, setRetailPrice] = useState(25);
+  const [retailMarkup, setRetailMarkup] = useState(50);
+  const [inventoryBuffer, setInventoryBuffer] = useState(3);
+  const [customPassThrough, setCustomPassThrough] = useState(75);
+  const [showAllProducts, setShowAllProducts] = useState(false);
 
-  // API-related state
-  const [loading, setLoading] = useState(false); // Loading state for async operations
-  const [error, setError] = useState(null); // Error state for API calls
-  const [apiProducts, setApiProducts] = useState([]); // Products fetched from API
-  const [apiCalculations, setApiCalculations] = useState(null); // Results from API calculations
+  // API state management
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [apiProducts, setApiProducts] = useState([]);
+  const [apiCalculations, setApiCalculations] = useState(null);
 
   // Fetch products from backend on component mount
   useEffect(() => {
@@ -129,6 +138,37 @@ hs_code: selectedProduct || null
     setCustomPassThrough(calculatedPassThrough);
   }, [calculatedPassThrough]);
 
+  // Set realistic default prices based on selected product
+  useEffect(() => {
+    if (selectedProductData) {
+      const productName = selectedProductData.name.toLowerCase();
+      let defaultPrice = 25; // fallback
+
+      // Set realistic prices based on product type
+      if (productName.includes('smartphone') || productName.includes('phone')) {
+        defaultPrice = 800;
+      } else if (productName.includes('laptop') || productName.includes('computer')) {
+        defaultPrice = 1200;
+      } else if (productName.includes('car') || productName.includes('vehicle')) {
+        defaultPrice = 35000;
+      } else if (productName.includes('pharmaceutical') || productName.includes('medication')) {
+        defaultPrice = 150;
+      } else if (productName.includes('footwear') || productName.includes('shoes')) {
+        defaultPrice = 80;
+      } else if (productName.includes('clothing') || productName.includes('apparel') || productName.includes('trousers')) {
+        defaultPrice = 45;
+      } else if (productName.includes('toy') || productName.includes('game')) {
+        defaultPrice = 30;
+      } else if (productName.includes('furniture')) {
+        defaultPrice = 400;
+      } else if (productName.includes('seafood') || productName.includes('shrimp') || productName.includes('coffee')) {
+        defaultPrice = 12; // per pound/kg
+      }
+
+      setRetailPrice(defaultPrice);
+    }
+  }, [selectedProductData]);
+
   // Memoized calculations based on current input parameters
   const calculations = useMemo(() => {
     const importCost = calculateImportCost(retailPrice, retailMarkup);
@@ -184,368 +224,189 @@ hs_code: selectedProduct || null
       {/* Only show calculator interface when products are available */}
       {!loading && allProducts.length > 0 && (
         <>
-      {/* Product selection and search interface */}
-      <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <CalcIcon className="w-6 h-6 text-violet-500" />
-          Tariff Impact Calculator
-        </h2>
-        
-        {/* Product search input */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by product name or HS code..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 rounded-lg ${
-              darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
-            } focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all`}
-          />
-        </div>
+        {/* Side by side layout: Products on left, Calculator on right */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        {/* Product selection grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {(showAllProducts ? filteredProducts : filteredProducts.slice(0, 8)).map(product => {
-            const hsCode = product.hs_code || product.hsCode;
-            return (
-              <button
-                key={hsCode}
-                onClick={() => setSelectedProduct(hsCode)}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  selectedProduct === hsCode
-                    ? 'border-violet-500 bg-violet-500/10'
-                    : darkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-left">
-                  <p className="font-semibold">{product.name}</p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    HS: {hsCode} • {product.category}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        
-        {/* Show more/less button */}
-        {filteredProducts.length > 8 && (
-          <div className="text-center mb-6">
-            <button
-              onClick={() => setShowAllProducts(!showAllProducts)}
-              className={`px-6 py-2 rounded-lg transition-all ${
-                darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-              }`}
-            >
-              {showAllProducts 
-                ? `Show Less (${filteredProducts.length - 8} hidden)` 
-                : `Show ${filteredProducts.length - 8} More Products`
-              }
-            </button>
-          </div>
-        )}
-        
-        {/* Selected Product Information */}
-        {selectedProductData && (
+          {/* Left: Product selection */}
           <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Globe className="w-5 h-5 text-blue-500" />
-              Current Product Data: {selectedProductData.name}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">Country of Origin</p>
-                <p className="text-lg font-bold text-blue-500">
-                  {selectedProductData.country_of_origin || 'Unknown'}
-                </p>
-              </div>
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">Current Tariff Rate</p>
-                <p className="text-lg font-bold text-green-500">
-                  {selectedProductData.current_tariff_rate || 0}%
-                </p>
-              </div>
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">Proposed Tariff Rate</p>
-                <p className="text-lg font-bold text-orange-500">
-                  {selectedProductData.proposed_tariff_rate || 0}%
-                </p>
-              </div>
-            </div>
-            <div className={`mt-4 p-4 rounded-lg ${darkMode ? 'bg-blue-900/30' : 'bg-blue-50'} border ${darkMode ? 'border-blue-700/50' : 'border-blue-200'}`}>
-              <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-blue-600 mb-1">Pass-Through Rate Calculation</p>
-                  <p className={`text-xs ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                    Based on economic data, about <strong>{calculatedPassThrough.toFixed(1)}%</strong> of tariff costs 
-                    for {(selectedProductData.name || 'this product').toLowerCase()} are typically passed on to consumers. 
-                    This depends on how easily consumers can switch to alternatives (demand elasticity: {selectedProductData.demand_elasticity || selectedProductData.elasticity?.demand || 'N/A'}) 
-                    and how quickly suppliers can adjust production (supply elasticity: {selectedProductData.supply_elasticity || selectedProductData.elasticity?.supply || 'N/A'}).
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <CalcIcon className="w-6 h-6 text-violet-500" />
+              Select Product
+            </h2>
 
-      {/* How It Works Section */}
-      <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Info className="w-5 h-5 text-violet-500" />
-          How the Calculator Works
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-violet-500 mb-2">1. Import Cost Calculation</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
-              We work backwards from the retail price to find the original import cost before retailer markup. 
-              <strong> Import Cost = Retail Price ÷ (1 + Markup%)</strong>
-            </p>
-            
-            <h4 className="font-semibold text-pink-500 mb-2">2. Tariff Amount</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              The total tariff charged on imports. 
-              <strong> Tariff = Import Cost × Tariff Rate%</strong>
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-blue-500 mb-2">3. Pass-Through to Consumers</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
-              Not all tariff costs reach consumers - some are absorbed by importers/retailers. The pass-through rate depends on market competition and product substitutability.
-              <strong> Consumer Impact = Tariff × Pass-Through Rate%</strong>
-            </p>
-            
-            <h4 className="font-semibold text-green-500 mb-2">4. Effective Tax Rate</h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              The percentage of your final purchase price that represents tariff tax.
-              <strong> Tax Rate = Consumer Impact ÷ Future Price</strong>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main calculator interface split into inputs and results */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left panel: Input controls and parameter adjustment */}
-        <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
-          <h3 className="text-lg font-semibold mb-4">Input Parameters</h3>
-          
-          <div className="space-y-6">
-            {/* Basic pricing inputs */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Retail Price ($)
-              </label>
+            {/* Product search input */}
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
-                type="number"
-                value={retailPrice}
-                onChange={(e) => setRetailPrice(parseFloat(e.target.value) || 0)}
-                className={`w-full p-3 rounded-lg ${
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 rounded-lg ${
                   darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-violet-500`}
+                } focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all`}
               />
             </div>
 
-            {/* Markup percentage slider */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Retail Markup (%)
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="200"
-                value={retailMarkup}
-                onChange={(e) => setRetailMarkup(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm mt-2">
-                <span>0%</span>
-                <span className="font-bold text-violet-500">{retailMarkup}%</span>
-                <span>200%</span>
+            {/* Product list - single column, scrollable */}
+            <div
+              className="space-y-3"
+              style={{
+                maxHeight: '500px',
+                overflowY: 'auto',
+                paddingRight: '8px'
+              }}
+            >
+              {filteredProducts.map(product => {
+                const hsCode = product.hs_code || product.hsCode;
+                return (
+                  <button
+                    key={hsCode}
+                    onClick={() => setSelectedProduct(hsCode)}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedProduct === hsCode
+                        ? 'border-violet-500 bg-violet-500/10'
+                        : darkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <p className="font-semibold">{product.name}</p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {product.category} • {product.country_of_origin}
+                    </p>
+                    <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      Current: {product.current_tariff_rate || 0}% → Proposed: {product.proposed_tariff_rate || 0}%
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: Calculator Interface */}
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-8 shadow-2xl border-4 ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+            {/* Calculator Display Screen */}
+            <div className={`${darkMode ? 'bg-black' : 'bg-gray-900'} text-green-400 p-6 rounded-lg mb-6 font-mono`}>
+              <div className="text-right">
+                <div className="text-sm opacity-75 mb-1">Future Price</div>
+                <div className="text-3xl font-bold">
+                  ${(apiCalculations?.future_price || calculations.futurePrice.toFixed(2))}
+                </div>
+                <div className="text-sm mt-2">
+                  Increase: {(apiCalculations?.price_increase_pct || calculations.priceIncreasePercent.toFixed(1))}%
+                </div>
               </div>
             </div>
 
-            {/* Tariff rate slider */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Tariff Rate (%)
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={tariffRate}
-                onChange={(e) => setTariffRate(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm mt-2">
-                <span>0%</span>
-                <span className="font-bold text-pink-500">{tariffRate}%</span>
-                <span>100%</span>
-              </div>
-            </div>
+            {/* Calculator Input Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold mb-4 text-center">Tariff Calculator</h3>
 
-            {/* Pass-through rate (always editable with calculated default) */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Pass-through Rate (%)
-                {selectedProductData && (
-                  <span className="text-xs ml-2 text-violet-500">
-                    (Calculated: {calculatedPassThrough.toFixed(1)}%)
-                  </span>
-                )}
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={customPassThrough}
-                onChange={(e) => setCustomPassThrough(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm mt-2">
-                <span>0%</span>
-                <span className="font-bold text-blue-500">
-                  {customPassThrough.toFixed(1)}%
-                </span>
-                <span>100%</span>
+              {/* Calculator-style input rows */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium mb-1">Price ($)</label>
+                  <input
+                    type="number"
+                    value={retailPrice}
+                    onChange={(e) => setRetailPrice(parseFloat(e.target.value) || 0)}
+                    className={`w-full p-3 rounded-lg text-lg font-bold text-center ${
+                      darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-violet-500`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Markup %</label>
+                  <input
+                    type="number"
+                    value={retailMarkup}
+                    onChange={(e) => setRetailMarkup(parseFloat(e.target.value) || 0)}
+                    className={`w-full p-3 rounded-lg text-lg font-bold text-center ${
+                      darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-violet-500`}
+                  />
+                </div>
               </div>
-              {selectedProductData && Math.abs(customPassThrough - calculatedPassThrough) > 0.5 && (
-                <p className={`text-xs mt-1 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                  Custom value differs from calculated ({calculatedPassThrough.toFixed(1)}%)
-                </p>
-              )}
-            </div>
 
-            {/* Inventory buffer slider */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Inventory Buffer (months)
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="12"
-                step="1"
-                value={inventoryBuffer}
-                onChange={(e) => setInventoryBuffer(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm mt-2">
-                <span>0</span>
-                <span className="font-bold text-green-500">{inventoryBuffer} months</span>
-                <span>12</span>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Tariff %</label>
+                  <input
+                    type="number"
+                    value={tariffRate}
+                    onChange={(e) => setTariffRate(parseFloat(e.target.value) || 0)}
+                    className={`w-full p-3 rounded-lg text-lg font-bold text-center ${
+                      darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-pink-500`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Pass-through %</label>
+                  <input
+                    type="number"
+                    value={Math.round(customPassThrough)}
+                    onChange={(e) => setCustomPassThrough(parseFloat(e.target.value) || 0)}
+                    className={`w-full p-3 rounded-lg text-lg font-bold text-center ${
+                      darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  />
+                </div>
+              </div>
+
+              {/* Quick preset buttons */}
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <button
+                  onClick={() => setTariffRate(10)}
+                  className={`p-2 rounded-lg text-sm font-medium ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                  } transition-colors`}
+                >
+                  10%
+                </button>
+                <button
+                  onClick={() => setTariffRate(25)}
+                  className={`p-2 rounded-lg text-sm font-medium ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                  } transition-colors`}
+                >
+                  25%
+                </button>
+                <button
+                  onClick={() => setTariffRate(50)}
+                  className={`p-2 rounded-lg text-sm font-medium ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                  } transition-colors`}
+                >
+                  50%
+                </button>
+                <button
+                  onClick={() => setTariffRate(100)}
+                  className={`p-2 rounded-lg text-sm font-medium ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+                  } transition-colors`}
+                >
+                  100%
+                </button>
+              </div>
+
+              {/* Additional info display */}
+              <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg p-3 text-sm`}>
+                <div className="flex justify-between mb-1">
+                  <span>Import Cost:</span>
+                  <span className="font-mono">${(apiCalculations?.import_cost || calculations.importCost.toFixed(2))}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span>Tariff Amount:</span>
+                  <span className="font-mono">${(apiCalculations?.tariff_amount || calculations.tariffAmount.toFixed(2))}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tariff Tax:</span>
+                  <span className="font-mono">{(apiCalculations?.tariff_tax_pct || calculations.tariffTaxPct.toFixed(1))}%</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right panel: Calculation results and impact metrics */}
-        <div className={`${darkMode ? 'bg-gray-800/90' : 'bg-white'} rounded-xl p-6 shadow-xl border ${darkMode ? 'border-gray-700/50' : 'border-gray-100'} backdrop-blur-sm`}>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-violet-500" />
-            Calculation Results
-          </h3>
-          
-          <div className="space-y-4">
-            {/* Core calculation metrics */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">Import Cost</p>
-                <p className="text-2xl font-bold text-violet-500">
-                  ${(apiCalculations?.import_cost || calculations.importCost.toFixed(2))}
-                </p>
-                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Original cost before markup
-                </p>
-              </div>
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">Tariff Amount</p>
-                <p className="text-2xl font-bold text-pink-500">
-                  ${(apiCalculations?.tariff_amount || calculations.tariffAmount.toFixed(2))}
-                </p>
-                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Total tariff charged on imports
-                </p>
-              </div>
-            </div>
-
-            {/* Main consumer impact summary */}
-            <div className={`p-4 rounded-lg border-2 ${
-              darkMode ? 'bg-gray-700/50 border-blue-500/50' : 'bg-blue-50 border-blue-200'
-            }`}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="font-medium">Consumer Impact</p>
-                <DollarSign className="w-5 h-5 text-blue-500" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Tariff Passed to Consumer:</span>
-                  <span className="font-bold text-blue-500">
-                    ${(apiCalculations?.tariff_passed || calculations.tariffPassed.toFixed(2))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Future Retail Price:</span>
-                  <span className="font-bold text-green-500">
-                    ${(apiCalculations?.future_price || calculations.futurePrice.toFixed(2))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Price Increase:</span>
-                  <span className="font-bold text-orange-500">
-                    {(apiCalculations?.price_increase_pct || calculations.priceIncreasePercent.toFixed(1))}%
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Highlighted effective tariff rate */}
-            <div className={`p-6 rounded-lg text-center ${
-              darkMode ? 'bg-gradient-to-r from-violet-900/50 to-pink-900/50' : 'bg-gradient-to-r from-violet-100 to-pink-100'
-            }`}>
-              <p className="text-sm font-medium mb-2">Effective Tariff Tax</p>
-              <p className="text-4xl font-bold bg-gradient-to-r from-violet-500 to-pink-500 bg-clip-text text-transparent">
-                {(apiCalculations?.tariff_tax_pct || calculations.tariffTaxPct.toFixed(1))}%
-              </p>
-              <p className={`text-xs mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                of future price is tariff
-              </p>
-            </div>
-
-            {/* Inventory buffer impact calculation */}
-            {inventoryBuffer > 0 && (
-              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className="text-sm text-gray-500 mb-1">With {inventoryBuffer}-Month Buffer</p>
-                <p className="text-lg font-bold text-green-500">
-                  ${calculations.inventoryAdjustedIncrease.toFixed(2)} initial impact
-                </p>
-                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Companies with existing inventory can delay price increases. Full impact occurs when inventory is depleted.
-                </p>
-              </div>
-            )}
-            
-            {/* Explanatory note */}
-            <div className={`p-3 rounded-lg ${darkMode ? 'bg-yellow-900/30' : 'bg-yellow-50'} border ${darkMode ? 'border-yellow-700/50' : 'border-yellow-200'}`}>
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                <p className={`text-xs ${darkMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
-                  <strong>Note:</strong> These calculations show potential impacts. Actual results depend on market conditions, 
-                  competition, and company strategies. The pass-through rate represents economic estimates based on historical data.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </div> {/* End grid */}
         </>
       )}
     </div>

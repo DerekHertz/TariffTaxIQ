@@ -133,19 +133,53 @@ class ApiService {
 
   /**
    * Fetch predefined tariff scenarios for analysis
-   * 
+   *
    * Retrieves current and proposed tariff rates by sector/category
    * for comparative analysis and scenario planning.
-   * 
+   *
    * @returns {Promise<Object>} Tariff scenarios by category
    * @throws {Error} Network or server errors
-   * 
+   *
    * @example
    * const scenarios = await api.getTariffScenarios();
    * // Returns: { current_rates: { Electronics: 2.5, ... }, proposed_changes: { ... } }
    */
   async getTariffScenarios() {
     return this.fetchWithError(`${API_URL}/api/tariff-scenarios`);
+  }
+
+  /**
+   * Update all product tariff rates from external USITC API
+   *
+   * Triggers backend to fetch latest tariff rates from USITC and update
+   * all products in the database with current official rates.
+   *
+   * @returns {Promise<Object>} Update results with success/failure counts
+   * @throws {Error} Network or server errors
+   *
+   * @example
+   * const result = await api.updateTariffRates();
+   * // Returns: { message: "...", updated_count: 8, failed_count: 2, ... }
+   */
+  async updateTariffRates() {
+    return this.fetchWithError(`${API_URL}/api/update-tariffs`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Get current tariff information for a specific HS code
+   *
+   * @param {string} hsCode - The Harmonized System code
+   * @returns {Promise<Object>} Current tariff rate information
+   * @throws {Error} Product not found or API errors
+   *
+   * @example
+   * const info = await api.getTariffInfo('851712');
+   * // Returns: { hs_code: '851712', current_tariff_rate: 3.9, ... }
+   */
+  async getTariffInfo(hsCode) {
+    return this.fetchWithError(`${API_URL}/api/tariff-info/${hsCode}`);
   }
 }
 
